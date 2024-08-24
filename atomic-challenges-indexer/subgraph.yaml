@@ -1,0 +1,53 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Challenges
+    network: base
+    source:
+      address: "0xd909E5ed3Bb25F6680505fB88434166d05A52aAa"
+      abi: Challenges
+      startBlock: 18461335
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CheckIn
+        - Claim
+        - Create
+        - DonationOrgSet
+        - EIP712DomainChanged
+        - GovernanceTransferred
+        - Join
+        - MinDonationBPSSet
+        - OwnershipTransferred
+        - Settle
+      abis:
+        - name: Challenges
+          file: ./abis/Challenges.json
+      eventHandlers:
+        - event: CheckIn(indexed address,indexed uint256,bytes)
+          handler: handleCheckIn
+        - event: Claim(indexed address,indexed uint256,uint256)
+          handler: handleClaim
+        - event: Create(indexed uint256,(address,uint64,uint64,uint64,uint64,address,address,address,uint128,uint128))
+          handler: handleCreate
+        - event: DonationOrgSet(address,bool)
+          handler: handleDonationOrgSet
+        - event: EIP712DomainChanged()
+          handler: handleEIP712DomainChanged
+        - event: GovernanceTransferred(indexed address)
+          handler: handleGovernanceTransferred
+        - event: Join(indexed address,indexed uint256)
+          handler: handleJoin
+        - event: MinDonationBPSSet(uint256)
+          handler: handleMinDonationBPSSet
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Settle(indexed uint256)
+          handler: handleSettle
+      file: ./src/challenges.ts

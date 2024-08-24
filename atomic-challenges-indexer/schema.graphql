@@ -1,0 +1,96 @@
+type CheckIn @entity(immutable: true) {
+  id: Bytes!
+  user: Bytes! # address
+  challengeId: BigInt! # uint256
+  checkInData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Claim @entity(immutable: true) {
+  id: Bytes!
+  user: Bytes! # address
+  challengeId: BigInt! # uint256
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Create @entity(immutable: true) {
+  id: Bytes!
+  challengeId: BigInt! # uint256
+  challenge_verifier: Bytes! # address
+  challenge_minimumCheckIns: BigInt! # uint64
+  challenge_startTimestamp: BigInt! # uint64
+  challenge_joinDueTimestamp: BigInt! # uint64
+  challenge_endTimestamp: BigInt! # uint64
+  challenge_donateDestination: Bytes! # address
+  challenge_checkInJudge: Bytes! # address
+  challenge_asset: Bytes! # address
+  challenge_donationBPS: BigInt! # uint128
+  challenge_stakePerUser: BigInt! # uint128
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DonationOrgSet @entity(immutable: true) {
+  id: Bytes!
+  donationOrg: Bytes! # address
+  status: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type EIP712DomainChanged @entity(immutable: true) {
+  id: Bytes!
+
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GovernanceTransferred @entity(immutable: true) {
+  id: Bytes!
+  newGovernance: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Join @entity(immutable: true) {
+  id: Bytes!
+  user: Bytes! # address
+  challengeId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MinDonationBPSSet @entity(immutable: true) {
+  id: Bytes!
+  newMinDonationBPS: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Settle @entity(immutable: true) {
+  id: Bytes!
+  challengeId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
