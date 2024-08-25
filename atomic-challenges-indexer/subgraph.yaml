@@ -26,6 +26,10 @@ dataSources:
         - MinDonationBPSSet
         - OwnershipTransferred
         - Settle
+        - Challenge
+        - User
+        - UserChallenge
+        - CheckInDigest
       abis:
         - name: Challenges
           file: ./abis/Challenges.json

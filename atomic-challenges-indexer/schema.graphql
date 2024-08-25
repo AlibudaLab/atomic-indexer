@@ -94,3 +94,60 @@ type Settle @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type Challenge @entity {
+  id: String! # uint256
+  verifier: Bytes! # address
+  minimumCheckIns: BigInt! # uint64
+  startTimestamp: BigInt! # uint64
+  joinDueTimestamp: BigInt! # uint64
+  endTimestamp: BigInt! # uint64
+  donateDestination: Bytes! # address
+  checkInJudge: Bytes! # address
+  asset: Bytes! # address
+  donationBPS: BigInt! # uint128
+  stakePerUser: BigInt! # uint128
+  status: BigInt! # uint8
+  joinedUsers: [UserChallenge!] @derivedFrom(field: "challengeId") # User[]
+  totalUsers: BigInt! # uint256
+  totalStake: BigInt! # uint256
+  totalCheckIns: BigInt! # uint256
+  totalClaims: BigInt! # uint256
+  totalSucceedUsers: BigInt! # uint256
+  totalFailedUsers: BigInt! # uint256
+  totalDonation: BigInt #TODO Not sure how, uint256
+}
+
+type User @entity {
+  id: Bytes! # address
+  joinedChallenges: [UserChallenge!] @derivedFrom(field: "user") # Challenge[]
+  totalJoinedChallenges: BigInt # uint256
+  totalStake: BigInt # uint256
+  totalEarned: BigInt # uint256
+  totalCheckIns: BigInt # uint256
+  claimedChallenges: [BigInt!] # uint256[]
+  totalClaimedChallenges: BigInt # uint256
+  createdChallenges: [BigInt!] #TODO uint256[] 
+  totalCreatedChallenges: BigInt #TODO uint256
+  settledChallenges: [BigInt!] #TODO uint256[]
+  totalSettledChallenges: BigInt #TODO uint256
+  totalSucceedChallenges: BigInt # uint256
+  totalFailedChallenges: BigInt #TODO Not sure how, uint256
+}
+
+type UserChallenge @entity {
+  id: String! # uint256
+  user: User! # address
+  challengeId: Challenge! # uint256
+  status: Int8! # enum
+}
+
+type CheckInDigest @entity {
+  id: String!
+  challengeId: BigInt! # uint256
+  user: Bytes! # address
+  checkInData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
