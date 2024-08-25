@@ -45,7 +45,7 @@ export function handleCheckIn(event: CheckInEvent): void {
 
   let contract = Challenges.bind(event.address)
   let _challenge = new Challenge(event.params.challengeId.toString())
-  _challenge.totalCheckIns = _challenge.totalCheckIns?.plus(new BigInt(1)) || new BigInt(1)
+  _challenge.totalCheckIns = _challenge.totalCheckIns ? _challenge.totalCheckIns.plus(new BigInt(1)) : new BigInt(1)
   _challenge.totalSucceedUsers = contract.totalSucceedUsers(event.params.challengeId)
 
   _challenge.save()
@@ -61,9 +61,9 @@ export function handleCheckIn(event: CheckInEvent): void {
   _checkInDigest.save()
 
   let _user = new User(event.params.user)
-  _user.totalCheckIns = _user.totalCheckIns?.plus(new BigInt(1)) || new BigInt(1)
+  _user.totalCheckIns = _user.totalCheckIns ? _user.totalCheckIns.plus(BigInt.fromI32(1)) : new BigInt(1)
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
-  if( _userCheckInCount == _challenge.minimumCheckIns) _user.totalSucceedChallenges = _user.totalSucceedChallenges?.plus(new BigInt(1)) || new BigInt(1)
+  if( _userCheckInCount == _challenge.minimumCheckIns) _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
 
   _user.save()
 }
@@ -83,17 +83,16 @@ export function handleClaim(event: ClaimEvent): void {
   entity.save()
 
   let _challenge = new Challenge(event.params.challengeId.toString())
-  _challenge.totalClaims = _challenge.totalClaims?.plus(new BigInt(1)) || new BigInt(1)
+  _challenge.totalClaims = _challenge.totalClaims ? _challenge.totalClaims.plus(new BigInt(1)) : new BigInt(1)
 
   _challenge.save()
 
   let _user = new User(event.params.user)
-  _user.totalStake = _user.totalStake?.minus(_challenge.stakePerUser) || new BigInt(0)
-  let _claimedChallenges = _user.claimedChallenges
-  _claimedChallenges?.push(event.params.challengeId) 
+  _user.totalStake = _user.totalStake ? _user.totalStake.minus(_challenge.stakePerUser) : new BigInt(0)
+  let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : [event.params.challengeId]
   _user.claimedChallenges = _claimedChallenges
-  _user.totalClaimedChallenges = _user.totalClaimedChallenges?.plus(new BigInt(1)) || new BigInt(1)
-  _user.totalEarned = _user.totalEarned?.plus(event.params.amount) || event.params.amount
+  _user.totalClaimedChallenges = _user.totalClaimedChallenges ? _user.totalClaimedChallenges.plus(new BigInt(1)) : new BigInt(1)
+  _user.totalEarned = _user.totalEarned ? _user.totalEarned.plus(event.params.amount) : event.params.amount
 
   _user.save()
 }
@@ -199,13 +198,14 @@ export function handleJoin(event: JoinEvent): void {
   entity.save()
 
   let _challenge = new Challenge(event.params.challengeId.toString())
-  _challenge.totalUsers = _challenge.totalUsers?.plus(new BigInt(1)) || new BigInt(1)
-  _challenge.totalStake = _challenge.totalStake?.plus(_challenge.stakePerUser) || _challenge.stakePerUser
+  _challenge.totalUsers = _challenge.totalUsers ? _challenge.totalUsers.plus(new BigInt(1)) : new BigInt(1)
+  _challenge.totalStake = _challenge.totalStake ? _challenge.totalStake.plus(_challenge.stakePerUser) : _challenge.stakePerUser
 
   _challenge.save()
 
   let _user = new User(event.params.user)
-  _user.totalStake = _user.totalStake?.plus(_challenge.stakePerUser) || _challenge.stakePerUser
+  _user.totalJoinedChallenges = _user.totalJoinedChallenges ? _user.totalJoinedChallenges.plus(new BigInt(1)) : new BigInt(1)
+  _user.totalStake = _user.totalStake ? _user.totalStake.plus(_challenge.stakePerUser) : _challenge.stakePerUser
 
   _user.save()
 
