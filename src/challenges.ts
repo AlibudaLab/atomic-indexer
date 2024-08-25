@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
   CheckIn as CheckInEvent,
   Claim as ClaimEvent,
@@ -44,13 +44,14 @@ export function handleCheckIn(event: CheckInEvent): void {
   entity.save()
 
   let contract = Challenges.bind(event.address)
-  let _challenge = new Challenge(event.params.challengeId.toString())
-  _challenge.totalCheckIns = _challenge.totalCheckIns ? _challenge.totalCheckIns.plus(new BigInt(1)) : new BigInt(1)
+  let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
+  if (!_challenge) return
+  _challenge.totalCheckIns = _challenge.totalCheckIns.plus(new BigInt(1))
   _challenge.totalSucceedUsers = contract.totalSucceedUsers(event.params.challengeId)
 
   _challenge.save()
 
-  let _checkInDigest = new CheckInDigest((event.params.challengeId.toHexString()).concat(event.params.user.toString()).concat(event.params.checkInData.toString()))
+  let _checkInDigest = new CheckInDigest((Bytes.fromI32(event.params.challengeId.toI32())).concat(event.params.user).concat(event.params.checkInData))
   _checkInDigest.challengeId = event.params.challengeId
   _checkInDigest.user = event.params.user
   _checkInDigest.checkInData = event.params.checkInData
@@ -60,7 +61,8 @@ export function handleCheckIn(event: CheckInEvent): void {
 
   _checkInDigest.save()
 
-  let _user = new User(event.params.user)
+  let _user = User.load(event.params.user)
+  if (!_user) return
   _user.totalCheckIns = _user.totalCheckIns ? _user.totalCheckIns.plus(BigInt.fromI32(1)) : new BigInt(1)
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
   if( _userCheckInCount == _challenge.minimumCheckIns) _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
@@ -82,12 +84,14 @@ export function handleClaim(event: ClaimEvent): void {
 
   entity.save()
 
-  let _challenge = new Challenge(event.params.challengeId.toString())
+  let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
+  if (!_challenge) return
   _challenge.totalClaims = _challenge.totalClaims ? _challenge.totalClaims.plus(new BigInt(1)) : new BigInt(1)
 
   _challenge.save()
 
-  let _user = new User(event.params.user)
+  let _user = User.load(event.params.user)
+  if (!_user) return
   _user.totalStake = _user.totalStake ? _user.totalStake.minus(_challenge.stakePerUser) : new BigInt(0)
   let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : [event.params.challengeId]
   _user.claimedChallenges = _claimedChallenges
@@ -119,7 +123,7 @@ export function handleCreate(event: CreateEvent): void {
 
   entity.save()
 
-  let _challenge = new Challenge(event.params.challengeId.toString())
+  let _challenge = new Challenge(Bytes.fromI32(event.params.challengeId.toI32()))
   _challenge.verifier = event.params.challenge.verifier
   _challenge.minimumCheckIns = event.params.challenge.minimumCheckIns
   _challenge.startTimestamp = event.params.challenge.startTimestamp
@@ -197,21 +201,31 @@ export function handleJoin(event: JoinEvent): void {
 
   entity.save()
 
-  let _challenge = new Challenge(event.params.challengeId.toString())
-  _challenge.totalUsers = _challenge.totalUsers ? _challenge.totalUsers.plus(new BigInt(1)) : new BigInt(1)
-  _challenge.totalStake = _challenge.totalStake ? _challenge.totalStake.plus(_challenge.stakePerUser) : _challenge.stakePerUser
-
+  let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
+  if (!_challenge) return
+  _challenge.totalUsers = _challenge.totalUsers.plus(new BigInt(1))
+  _challenge.totalStake = _challenge.totalStake.plus(_challenge.stakePerUser)
   _challenge.save()
 
-  let _user = new User(event.params.user)
-  _user.totalJoinedChallenges = _user.totalJoinedChallenges ? _user.totalJoinedChallenges.plus(new BigInt(1)) : new BigInt(1)
-  _user.totalStake = _user.totalStake ? _user.totalStake.plus(_challenge.stakePerUser) : _challenge.stakePerUser
+  let _user = User.load(event.params.user)
+  if (!_user) {
+    _user = new User(event.params.user)
+    _user.totalJoinedChallenges = BigInt.fromI32(0)
+    _user.totalStake = BigInt.fromI32(0)
+    _user.totalEarned = BigInt.fromI32(0)
+    _user.totalCheckIns = BigInt.fromI32(0)
+    _user.totalClaimedChallenges = BigInt.fromI32(0)
+    _user.totalSucceedChallenges = BigInt.fromI32(0)
+  }
+  
+  _user.totalJoinedChallenges = _user.totalJoinedChallenges.plus(BigInt.fromI32(1))
+  _user.totalStake = _user.totalStake.plus(_challenge.stakePerUser)
 
   _user.save()
 
-  let _userChallenge = new UserChallenge((event.params.user.toString()).concat(event.params.challengeId.toString()))
+  let _userChallenge = new UserChallenge((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
   _userChallenge.user = event.params.user
-  _userChallenge.challengeId = event.params.challengeId.toString()
+  _userChallenge.challengeId = Bytes.fromI32(event.params.challengeId.toI32())
   _userChallenge.status = 1
 
   _userChallenge.save()
@@ -258,7 +272,8 @@ export function handleSettle(event: SettleEvent): void {
 
   entity.save()
 
-  let _challenge = new Challenge(event.params.challengeId.toString())
+  let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
+  if (!_challenge) return
   _challenge.totalFailedUsers = _challenge.totalUsers.minus(_challenge.totalSucceedUsers)
   _challenge.status = new BigInt(2)
 

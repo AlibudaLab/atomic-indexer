@@ -96,7 +96,7 @@ type Settle @entity(immutable: true) {
 }
 
 type Challenge @entity {
-  id: String! # uint256
+  id: Bytes! # uint256
   verifier: Bytes! # address
   minimumCheckIns: BigInt! # uint64
   startTimestamp: BigInt! # uint64
@@ -115,7 +115,7 @@ type Challenge @entity {
   totalClaims: BigInt! # uint256
   totalSucceedUsers: BigInt! # uint256
   totalFailedUsers: BigInt! # uint256
-  totalDonation: BigInt #TODO Not sure how, uint256
+  totalDonation: BigInt #TODO uint256
 }
 
 type User @entity {
@@ -132,18 +132,17 @@ type User @entity {
   settledChallenges: [BigInt!] #TODO uint256[]
   totalSettledChallenges: BigInt #TODO uint256
   totalSucceedChallenges: BigInt! # uint256
-  totalFailedChallenges: BigInt #TODO Not sure how, uint256
 }
 
 type UserChallenge @entity {
-  id: String! # uint256
+  id: Bytes! # uint256
   user: User! # address
   challengeId: Challenge! # uint256
   status: Int8! # enum
 }
 
 type CheckInDigest @entity {
-  id: String!
+  id: Bytes!
   challengeId: BigInt! # uint256
   user: Bytes! # address
   checkInData: Bytes! # bytes
