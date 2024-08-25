@@ -121,17 +121,17 @@ type Challenge @entity {
 type User @entity {
   id: Bytes! # address
   joinedChallenges: [UserChallenge!] @derivedFrom(field: "user") # Challenge[]
-  totalJoinedChallenges: BigInt # uint256
-  totalStake: BigInt # uint256
-  totalEarned: BigInt # uint256
-  totalCheckIns: BigInt # uint256
+  totalJoinedChallenges: BigInt! # uint256
+  totalStake: BigInt! # uint256
+  totalEarned: BigInt! # uint256
+  totalCheckIns: BigInt! # uint256
   claimedChallenges: [BigInt!] # uint256[]
-  totalClaimedChallenges: BigInt # uint256
+  totalClaimedChallenges: BigInt! # uint256
   createdChallenges: [BigInt!] #TODO uint256[] 
   totalCreatedChallenges: BigInt #TODO uint256
   settledChallenges: [BigInt!] #TODO uint256[]
   totalSettledChallenges: BigInt #TODO uint256
-  totalSucceedChallenges: BigInt # uint256
+  totalSucceedChallenges: BigInt! # uint256
   totalFailedChallenges: BigInt #TODO Not sure how, uint256
 }
 
