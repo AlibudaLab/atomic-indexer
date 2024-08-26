@@ -64,7 +64,13 @@ export function handleCheckIn(event: CheckInEvent): void {
 
   _user.totalCheckIns = _user.totalCheckIns ? _user.totalCheckIns.plus(BigInt.fromI32(1)) : new BigInt(1)
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
-  if( _userCheckInCount == _challenge.minimumCheckIns) _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
+  if( _userCheckInCount == _challenge.minimumCheckIns) {
+    let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
+    if (!_userChallenge) return
+    _userChallenge.status = 2
+    _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
+    _userChallenge.save()
+  }
 
   _userChallengeCheckInRecord.save()
   _checkInRecord.save()
@@ -88,17 +94,22 @@ export function handleClaim(event: ClaimEvent): void {
 
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
   let _user = User.load(event.params.user)
-  if (!_challenge || !_user ) return
+  let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
+  if (!_challenge || !_user || !_userChallenge) return
   _challenge.totalClaims = _challenge.totalClaims ? _challenge.totalClaims.plus(new BigInt(1)) : new BigInt(1)
 
   _user.totalStake = _user.totalStake ? _user.totalStake.minus(_challenge.stakePerUser) : new BigInt(0)
-  let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : [event.params.challengeId]
+  let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : []
+  _claimedChallenges.push(event.params.challengeId)
   _user.claimedChallenges = _claimedChallenges
   _user.totalClaimedChallenges = _user.totalClaimedChallenges ? _user.totalClaimedChallenges.plus(new BigInt(1)) : new BigInt(1)
   _user.totalEarned = _user.totalEarned ? _user.totalEarned.plus(event.params.amount) : event.params.amount
 
+  _userChallenge.status = 2
+
   _challenge.save()
   _user.save()
+  _userChallenge.save()
 }
 
 export function handleCreate(event: CreateEvent): void {
