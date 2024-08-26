@@ -108,7 +108,7 @@ type Challenge @entity {
   donationBPS: BigInt! # uint128
   stakePerUser: BigInt! # uint128
   status: BigInt! # uint8
-  joinedUsers: [UserChallenge!] @derivedFrom(field: "challengeId") # User[]
+  joinedUsers: [UserChallenge!] @derivedFrom(field: "challengeId")
   totalUsers: BigInt! # uint256
   totalStake: BigInt! # uint256
   totalCheckIns: BigInt! # uint256
@@ -120,7 +120,7 @@ type Challenge @entity {
 
 type User @entity {
   id: Bytes! # address
-  joinedChallenges: [UserChallenge!] @derivedFrom(field: "user") # Challenge[]
+  challengeHistory: [UserChallenge!] @derivedFrom(field: "user")
   totalJoinedChallenges: BigInt! # uint256
   totalStake: BigInt! # uint256
   totalEarned: BigInt! # uint256
@@ -135,17 +135,22 @@ type User @entity {
 }
 
 type UserChallenge @entity {
-  id: Bytes! # uint256
+  id: Bytes! # user + challengeId
   user: User! # address
   challengeId: Challenge! # uint256
+  checkIns: [UserChallengeCheckInRecord!] @derivedFrom(field: "userChallenge")
   status: Int8! # enum
 }
 
-type CheckInDigest @entity {
-  id: Bytes!
-  challengeId: BigInt! # uint256
-  user: Bytes! # address
-  checkInData: Bytes! # bytes
+type CheckInRecord @entity {
+  id: Bytes! # checkInData
+  usedInChallenge: [UserChallengeCheckInRecord!] @derivedFrom(field: "checkInRecord")
+}
+
+type UserChallengeCheckInRecord @entity(immutable: true) {
+  id: Bytes! # user + challengeId + checkInData
+  userChallenge: UserChallenge! # user + challengeId
+  checkInRecord: CheckInRecord! # checkInData
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

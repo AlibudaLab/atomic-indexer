@@ -25,8 +25,9 @@ import {
   Settle,
   Challenge,
   User,
-  CheckInDigest,
+  CheckInRecord,
   UserChallenge,
+  UserChallengeCheckInRecord,
 } from "../generated/schema"
 
 export function handleCheckIn(event: CheckInEvent): void {
@@ -45,28 +46,29 @@ export function handleCheckIn(event: CheckInEvent): void {
 
   let contract = Challenges.bind(event.address)
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
-  if (!_challenge) return
+  let _user = User.load(event.params.user)
+  if (!_challenge || !_user) return
+
+  let _checkInRecord = CheckInRecord.load(event.params.checkInData)
+  if (!_checkInRecord) _checkInRecord = new CheckInRecord(event.params.checkInData)
+
+  let _userChallengeCheckInRecord = new UserChallengeCheckInRecord((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())).concat(event.params.checkInData))
+  _userChallengeCheckInRecord.userChallenge = (event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32()))
+  _userChallengeCheckInRecord.checkInRecord = event.params.checkInData
+  _userChallengeCheckInRecord.blockNumber = event.block.number
+  _userChallengeCheckInRecord.blockTimestamp = event.block.timestamp
+  _userChallengeCheckInRecord.transactionHash = event.transaction.hash
+
   _challenge.totalCheckIns = _challenge.totalCheckIns.plus(new BigInt(1))
   _challenge.totalSucceedUsers = contract.totalSucceedUsers(event.params.challengeId)
 
-  _challenge.save()
-
-  let _checkInDigest = new CheckInDigest((Bytes.fromI32(event.params.challengeId.toI32())).concat(event.params.user).concat(event.params.checkInData))
-  _checkInDigest.challengeId = event.params.challengeId
-  _checkInDigest.user = event.params.user
-  _checkInDigest.checkInData = event.params.checkInData
-  _checkInDigest.blockNumber = event.block.number
-  _checkInDigest.blockTimestamp = event.block.timestamp
-  _checkInDigest.transactionHash = event.transaction.hash
-
-  _checkInDigest.save()
-
-  let _user = User.load(event.params.user)
-  if (!_user) return
   _user.totalCheckIns = _user.totalCheckIns ? _user.totalCheckIns.plus(BigInt.fromI32(1)) : new BigInt(1)
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
   if( _userCheckInCount == _challenge.minimumCheckIns) _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
 
+  _userChallengeCheckInRecord.save()
+  _checkInRecord.save()
+  _challenge.save()
   _user.save()
 }
 
@@ -85,19 +87,17 @@ export function handleClaim(event: ClaimEvent): void {
   entity.save()
 
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
-  if (!_challenge) return
+  let _user = User.load(event.params.user)
+  if (!_challenge || !_user ) return
   _challenge.totalClaims = _challenge.totalClaims ? _challenge.totalClaims.plus(new BigInt(1)) : new BigInt(1)
 
-  _challenge.save()
-
-  let _user = User.load(event.params.user)
-  if (!_user) return
   _user.totalStake = _user.totalStake ? _user.totalStake.minus(_challenge.stakePerUser) : new BigInt(0)
   let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : [event.params.challengeId]
   _user.claimedChallenges = _claimedChallenges
   _user.totalClaimedChallenges = _user.totalClaimedChallenges ? _user.totalClaimedChallenges.plus(new BigInt(1)) : new BigInt(1)
   _user.totalEarned = _user.totalEarned ? _user.totalEarned.plus(event.params.amount) : event.params.amount
 
+  _challenge.save()
   _user.save()
 }
 
