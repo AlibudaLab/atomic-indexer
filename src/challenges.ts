@@ -59,16 +59,16 @@ export function handleCheckIn(event: CheckInEvent): void {
   _userChallengeCheckInRecord.blockTimestamp = event.block.timestamp
   _userChallengeCheckInRecord.transactionHash = event.transaction.hash
 
-  _challenge.totalCheckIns = _challenge.totalCheckIns.plus(new BigInt(1))
-  _challenge.totalSucceedUsers = contract.totalSucceedUsers(event.params.challengeId)
+  _challenge.totalCheckIns = _challenge.totalCheckIns.plus(BigInt.fromI32(1))
+  _user.totalCheckIns = _user.totalCheckIns.plus(BigInt.fromI32(1))
 
-  _user.totalCheckIns = _user.totalCheckIns ? _user.totalCheckIns.plus(BigInt.fromI32(1)) : new BigInt(1)
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
   if( _userCheckInCount == _challenge.minimumCheckIns) {
     let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
     if (!_userChallenge) return
     _userChallenge.status = 2
-    _user.totalSucceedChallenges = _user.totalSucceedChallenges ? _user.totalSucceedChallenges.plus(new BigInt(1)) : new BigInt(1)
+    _challenge.totalSucceedUsers = _challenge.totalSucceedUsers.plus(BigInt.fromI32(1))
+    _user.totalSucceedChallenges = _user.totalSucceedChallenges.plus(BigInt.fromI32(1))
     _userChallenge.save()
   }
 
@@ -96,16 +96,16 @@ export function handleClaim(event: ClaimEvent): void {
   let _user = User.load(event.params.user)
   let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
   if (!_challenge || !_user || !_userChallenge) return
-  _challenge.totalClaims = _challenge.totalClaims ? _challenge.totalClaims.plus(new BigInt(1)) : new BigInt(1)
+  _challenge.totalClaims = _challenge.totalClaims.plus(BigInt.fromI32(1))
 
-  _user.totalStake = _user.totalStake ? _user.totalStake.minus(_challenge.stakePerUser) : new BigInt(0)
-  let _claimedChallenges = _user.claimedChallenges ? _user.claimedChallenges : []
-  _claimedChallenges.push(event.params.challengeId)
+  _user.totalStake = _user.totalStake.minus(_challenge.stakePerUser)
+  let _claimedChallenges = _user.claimedChallenges
+  _claimedChallenges.push(Bytes.fromI32(event.params.challengeId.toI32()))
   _user.claimedChallenges = _claimedChallenges
-  _user.totalClaimedChallenges = _user.totalClaimedChallenges ? _user.totalClaimedChallenges.plus(new BigInt(1)) : new BigInt(1)
-  _user.totalEarned = _user.totalEarned ? _user.totalEarned.plus(event.params.amount) : event.params.amount
+  _user.totalClaimedChallenges = _user.totalClaimedChallenges.plus(BigInt.fromI32(1))
+  _user.totalEarned = _user.totalEarned.plus(event.params.amount)
 
-  _userChallenge.status = 2
+  _userChallenge.status = 3
 
   _challenge.save()
   _user.save()
@@ -145,13 +145,13 @@ export function handleCreate(event: CreateEvent): void {
   _challenge.asset = event.params.challenge.asset
   _challenge.donationBPS = event.params.challenge.donationBPS
   _challenge.stakePerUser = event.params.challenge.stakePerUser
-  _challenge.status = new BigInt(1)
-  _challenge.totalUsers = new BigInt(0)
-  _challenge.totalStake = new BigInt(0)
-  _challenge.totalCheckIns = new BigInt(0)
-  _challenge.totalClaims = new BigInt(0)
-  _challenge.totalSucceedUsers = new BigInt(0)
-  _challenge.totalFailedUsers = new BigInt(0)
+  _challenge.status = 1
+  _challenge.totalUsers = BigInt.fromI32(0)
+  _challenge.totalStake = BigInt.fromI32(0)
+  _challenge.totalCheckIns = BigInt.fromI32(0)
+  _challenge.totalClaims = BigInt.fromI32(0)
+  _challenge.totalSucceedUsers = BigInt.fromI32(0)
+  _challenge.totalFailedUsers = BigInt.fromI32(0)
 
   _challenge.save()
 }
@@ -214,7 +214,7 @@ export function handleJoin(event: JoinEvent): void {
 
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
   if (!_challenge) return
-  _challenge.totalUsers = _challenge.totalUsers.plus(new BigInt(1))
+  _challenge.totalUsers = _challenge.totalUsers.plus(BigInt.fromI32(1))
   _challenge.totalStake = _challenge.totalStake.plus(_challenge.stakePerUser)
   _challenge.save()
 
@@ -227,6 +227,9 @@ export function handleJoin(event: JoinEvent): void {
     _user.totalCheckIns = BigInt.fromI32(0)
     _user.totalClaimedChallenges = BigInt.fromI32(0)
     _user.totalSucceedChallenges = BigInt.fromI32(0)
+    _user.claimedChallenges = []
+    _user.createdChallenges = []
+    _user.settledChallenges = []
   }
   
   _user.totalJoinedChallenges = _user.totalJoinedChallenges.plus(BigInt.fromI32(1))
@@ -286,7 +289,7 @@ export function handleSettle(event: SettleEvent): void {
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
   if (!_challenge) return
   _challenge.totalFailedUsers = _challenge.totalUsers.minus(_challenge.totalSucceedUsers)
-  _challenge.status = new BigInt(2)
+  _challenge.status = 2
 
   _challenge.save()
 }

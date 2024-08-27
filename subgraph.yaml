@@ -30,6 +30,7 @@ dataSources:
         - User
         - UserChallenge
         - CheckInRecord
+        - UserChallengeCheckInRecord
       abis:
         - name: Challenges
           file: ./abis/Challenges.json

@@ -107,7 +107,7 @@ type Challenge @entity {
   asset: Bytes! # address
   donationBPS: BigInt! # uint128
   stakePerUser: BigInt! # uint128
-  status: BigInt! # uint8
+  status: Int8! # uint8
   joinedUsers: [UserChallenge!] @derivedFrom(field: "challengeId")
   totalUsers: BigInt! # uint256
   totalStake: BigInt! # uint256
@@ -125,11 +125,11 @@ type User @entity {
   totalStake: BigInt! # uint256
   totalEarned: BigInt! # uint256
   totalCheckIns: BigInt! # uint256
-  claimedChallenges: [BigInt!] # uint256[]
+  claimedChallenges: [Bytes!]! # uint256[]
   totalClaimedChallenges: BigInt! # uint256
-  createdChallenges: [BigInt!] #TODO uint256[] 
+  createdChallenges: [Bytes!]! #TODO uint256[] 
   totalCreatedChallenges: BigInt #TODO uint256
-  settledChallenges: [BigInt!] #TODO uint256[]
+  settledChallenges: [Bytes!]! #TODO uint256[]
   totalSettledChallenges: BigInt #TODO uint256
   totalSucceedChallenges: BigInt! # uint256
 }
