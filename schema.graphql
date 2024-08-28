@@ -94,3 +94,64 @@ type Settle @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type Challenge @entity {
+  id: Bytes! # uint256
+  verifier: Bytes! # address
+  minimumCheckIns: BigInt! # uint64
+  startTimestamp: BigInt! # uint64
+  joinDueTimestamp: BigInt! # uint64
+  endTimestamp: BigInt! # uint64
+  donateDestination: Bytes! # address
+  checkInJudge: Bytes! # address
+  asset: Bytes! # address
+  donationBPS: BigInt! # uint128
+  stakePerUser: BigInt! # uint128
+  status: Int8! # uint8
+  joinedUsers: [UserChallenge!] @derivedFrom(field: "challengeId")
+  totalUsers: BigInt! # uint256
+  totalStake: BigInt! # uint256
+  totalCheckIns: BigInt! # uint256
+  totalClaims: BigInt! # uint256
+  totalSucceedUsers: BigInt! # uint256
+  totalFailedUsers: BigInt! # uint256
+  totalDonation: BigInt #TODO uint256
+}
+
+type User @entity {
+  id: Bytes! # address
+  challengeHistory: [UserChallenge!] @derivedFrom(field: "user")
+  totalJoinedChallenges: BigInt! # uint256
+  totalStake: BigInt! # uint256
+  totalEarned: BigInt! # uint256
+  totalCheckIns: BigInt! # uint256
+  claimedChallenges: [Bytes!]! # uint256[]
+  totalClaimedChallenges: BigInt! # uint256
+  createdChallenges: [Bytes!]! #TODO uint256[] 
+  totalCreatedChallenges: BigInt #TODO uint256
+  settledChallenges: [Bytes!]! #TODO uint256[]
+  totalSettledChallenges: BigInt #TODO uint256
+  totalSucceedChallenges: BigInt! # uint256
+}
+
+type UserChallenge @entity {
+  id: Bytes! # user + challengeId
+  user: User! # address
+  challengeId: Challenge! # uint256
+  checkIns: [UserChallengeCheckInRecord!] @derivedFrom(field: "userChallenge")
+  status: Int8! # enum
+}
+
+type CheckInRecord @entity {
+  id: Bytes! # checkInData
+  usedInChallenge: [UserChallengeCheckInRecord!] @derivedFrom(field: "checkInRecord")
+}
+
+type UserChallengeCheckInRecord @entity(immutable: true) {
+  id: Bytes! # user + challengeId + checkInData
+  userChallenge: UserChallenge! # user + challengeId
+  checkInRecord: CheckInRecord! # checkInData
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
