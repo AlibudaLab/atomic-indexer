@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Challenges
-    network: base-sepolia
+    network: base
     source:
-      address: "0x7D1981603530aa76db92186DA40092c5394B7635"
+      address: "0xd909E5ed3Bb25F6680505fB88434166d05A52aAa"
       abi: Challenges
-      startBlock: 13898452
+      startBlock: 18461335
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

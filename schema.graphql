@@ -139,6 +139,7 @@ type UserChallenge @entity {
   user: User! # address
   challengeId: Challenge! # uint256
   checkIns: [UserChallengeCheckInRecord!] @derivedFrom(field: "userChallenge")
+  totalCheckIns: BigInt! # uint256
   status: Int8! # enum
 }
 
