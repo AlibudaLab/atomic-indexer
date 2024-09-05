@@ -47,7 +47,8 @@ export function handleCheckIn(event: CheckInEvent): void {
   let contract = Challenges.bind(event.address)
   let _challenge = Challenge.load(Bytes.fromI32(event.params.challengeId.toI32()))
   let _user = User.load(event.params.user)
-  if (!_challenge || !_user) return
+  let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
+  if (!_challenge || !_user || !_userChallenge) return
 
   let _checkInRecord = CheckInRecord.load(event.params.checkInData)
   if (!_checkInRecord) _checkInRecord = new CheckInRecord(event.params.checkInData)
@@ -59,20 +60,20 @@ export function handleCheckIn(event: CheckInEvent): void {
   _userChallengeCheckInRecord.blockTimestamp = event.block.timestamp
   _userChallengeCheckInRecord.transactionHash = event.transaction.hash
 
+  _userChallenge.totalCheckIns = _userChallenge.totalCheckIns.plus(BigInt.fromI32(1))
+
   _challenge.totalCheckIns = _challenge.totalCheckIns.plus(BigInt.fromI32(1))
   _user.totalCheckIns = _user.totalCheckIns.plus(BigInt.fromI32(1))
 
   let _userCheckInCount = contract.getUserCheckInCounts(event.params.challengeId, event.params.user)
   if( _userCheckInCount == _challenge.minimumCheckIns) {
-    let _userChallenge = UserChallenge.load((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
-    if (!_userChallenge) return
     _userChallenge.status = 2
     _challenge.totalSucceedUsers = _challenge.totalSucceedUsers.plus(BigInt.fromI32(1))
     _user.totalSucceedChallenges = _user.totalSucceedChallenges.plus(BigInt.fromI32(1))
-    _userChallenge.save()
   }
 
   _userChallengeCheckInRecord.save()
+  _userChallenge.save()
   _checkInRecord.save()
   _challenge.save()
   _user.save()
@@ -240,6 +241,7 @@ export function handleJoin(event: JoinEvent): void {
   let _userChallenge = new UserChallenge((event.params.user).concat(Bytes.fromI32(event.params.challengeId.toI32())))
   _userChallenge.user = event.params.user
   _userChallenge.challengeId = Bytes.fromI32(event.params.challengeId.toI32())
+  _userChallenge.totalCheckIns = BigInt.fromI32(0)
   _userChallenge.status = 1
 
   _userChallenge.save()
